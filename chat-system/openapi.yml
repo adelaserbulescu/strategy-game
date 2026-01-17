@@ -1,0 +1,267 @@
+openapi: 3.1.0
+info:
+  title: Chat System API
+  description: >
+    Chat system microservice for user authentication, AI game recommendations,
+    and real-time chat functionality.
+  version: 1.0.0
+  contact:
+    name: Chat System Support
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserRegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+          maxLength: 100
+
+    UserLoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token for Bearer authentication
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    AIRecommendationRequest:
+      type: object
+      description: Request for AI game action recommendation
+      oneOf:
+        - type: object
+          title: Direct Game State
+          required:
+            - gameState
+          properties:
+            gameState:
+              $ref: '#/components/schemas/GameState'
+        - type: object
+          title: Fetch from Game Engine
+          required:
+            - matchId
+            - playerSeat
+          properties:
+            matchId:
+              type: string
+              description: Match ID to fetch from game engine
+            playerSeat:
+              type: integer
+              description: Player's seat number
+
+    GameState:
+      type: object
+      required:
+        - player
+      properties:
+        match:
+          type: object
+          description: Match information
+        board:
+          type: object
+          description: Current board state
+        players:
+          type: array
+          description: List of players in the game
+        player:
+          type: object
+          description: Current player
+        matchId:
+          type: string
+          description: Unique match identifier
+
+    AIRecommendationResponse:
+      type: object
+      properties:
+        action:
+          type: string
+          description: Recommended game action
+        confidence:
+          type: number
+          format: float
+          description: Confidence level (0-1)
+        alternatives:
+          type: array
+          items:
+            type: string
+          description: Alternative recommended actions
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: string
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Authentication
+    description: User registration and login endpoints
+  - name: AI
+    description: AI game action recommendations
+  - name: Chat
+    description: WebSocket real-time chat functionality
+
+paths:
+  /api/auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      description: Create a new user account with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error or email already taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login and retrieve JWT token
+      description: >
+        Authenticate user with email and password.
+        Returns a JWT token and basic user info.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Missing email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/chat/ai/recommendation:
+    post:
+      tags: [AI]
+      summary: Get AI game action recommendation
+      description: >
+        Get AI recommendation for the next game action.
+        Accepts either a full gameState object or matchId with playerSeat to fetch from game engine.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIRecommendationRequest'
+      responses:
+        '200':
+          description: AI recommendation generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIRecommendationResponse'
+        '400':
+          description: Invalid game state or failed to fetch match state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

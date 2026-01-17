@@ -1,0 +1,35 @@
+{
+  "gameState": {
+    "match": {
+      "id": 1,
+      "status": "RUNNING",
+      "currentTurn": 1
+    },
+    "player": {
+      "seat": 1,
+      "resources": {
+        "WOOD": 2,
+        "STONE": 2,
+        "GLASS": 1,
+        "FORCE": 1
+      },
+      "lightning": 2
+    },
+    "board": {
+      "width": 5,
+      "height": 3,
+      "cells": [
+        { "x": 0, "y": 0, "region": "FOREST", "ownerSeat": 1, "hits": 0 },
+        { "x": 1, "y": 0, "region": "VILLAGES", "ownerSeat": 2, "hits": 1 },
+        { "x": 2, "y": 0, "region": "SKY", "ownerSeat": -1, "hits": 0 },
+        { "x": 0, "y": 1, "region": "WATERS", "ownerSeat": -1, "hits": 0 },
+        { "x": 1, "y": 1, "region": "MOUNTAINS", "ownerSeat": 3, "hits": 0 }
+      ]
+    },
+    "players": [
+      { "seat": 1, "alive": true },
+      { "seat": 2, "alive": true },
+      { "seat": 3, "alive": true }
+    ]
+  }
+}
