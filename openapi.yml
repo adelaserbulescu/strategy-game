@@ -1,0 +1,629 @@
+openapi: 3.0.3
+info:
+  title: Strategy Game API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /api/matches:
+    post:
+      summary: Create a match
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMatchRequest"
+      responses:
+        "201":
+          description: Match created (PENDING)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchResponse"
+        "400":
+          description: Bad request
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/matches/{matchId}:
+    get:
+      summary: Get match details
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Match details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchResponse"
+        "404":
+          description: Not found
+
+  /api/matches/{matchId}/start:
+    post:
+      summary: Start a match (RUNNING, currentTurn=1)
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "202":
+          description: Match started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchResponse"
+        "404":
+          description: Not found
+
+  /api/board/{matchId}:
+    get:
+      summary: Get full board for match
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Board snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BoardResponse"
+        "404":
+          description: Not found
+
+  /api/players/{matchId}:
+    get:
+      summary: List players (seats) for match
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: List of seats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlayerSeatResponse"
+        "404":
+          description: Not found
+
+  /api/actions/{matchId}/place:
+    post:
+      summary: Place starting house (allowed in PENDING)
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionRequest"
+      responses:
+        "200":
+          description: Action result (success/fail + message)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /api/actions/{matchId}/build:
+    post:
+      summary: Build a house (allowed in RUNNING; checks currentTurn)
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionRequest"
+      responses:
+        "200":
+          description: Action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Bad request / invalid action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /api/actions/{matchId}/end-turn:
+    post:
+      summary: End turn (moves currentTurn to next alive)
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EndTurnRequest"
+      responses:
+        "200":
+          description: Action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Bad request / invalid action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /api/actions/{matchId}/attack:
+    post:
+      summary: Attack a cell (uses lightning, increments hits, may destroy house)
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionRequest"
+      responses:
+        "200":
+          description: Action result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "400":
+          description: Bad request / invalid action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /api/resources/{matchId}/resource-gain:
+    post:
+      summary: Trigger resource gain tick (manual/admin/testing)
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Tick result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "404":
+          description: Not found
+
+  /api/resources/{matchId}/lightning-recharge:
+    post:
+      summary: Trigger lightning recharge tick (manual/admin/testing)
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Tick result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "404":
+          description: Not found
+
+  /api/trades/{matchId}:
+    post:
+      summary: Create a trade offer
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTradeRequest"
+      responses:
+        "201":
+          description: Trade offer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradeResponse"
+        "400":
+          description: Bad request
+          content:
+            text/plain:
+              schema:
+                type: string
+        "404":
+          description: Match not found
+
+  /api/trades/{matchId}/trades:
+    get:
+      summary: List trades (optionally filter by status)
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            example: OPEN
+      responses:
+        "200":
+          description: List of trade offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradeResponse"
+        "404":
+          description: Match not found
+
+  /api/trades/{matchId}/{tradeOfferId}/accept:
+    post:
+      summary: Accept a trade offer
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: tradeOfferId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptTradeRequest"
+      responses:
+        "200":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AcceptTradeResponse"
+        "409":
+          description: Conflict (expired / insufficient resources / etc.)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+
+components:
+  schemas:
+    CreateMatchRequest:
+      type: object
+      properties:
+        players:
+          type: integer
+          example: 4
+        width:
+          type: integer
+          example: 5
+        height:
+          type: integer
+          example: 3
+        bots:
+          type: array
+          items:
+            type: boolean
+          example: [false, false, false, false]
+      required: [players, width, height, bots]
+
+    MatchResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        status:
+          type: string
+          example: PENDING
+        players:
+          type: integer
+          example: 4
+        width:
+          type: integer
+          example: 5
+        height:
+          type: integer
+          example: 3
+        currentTurn:
+          type: integer
+          nullable: true
+          example: 1
+        winnerSeat:
+          type: integer
+          nullable: true
+          example: 2
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    BoardResponse:
+      type: object
+      properties:
+        width:
+          type: integer
+          example: 5
+        height:
+          type: integer
+          example: 3
+        cells:
+          type: array
+          items:
+            $ref: "#/components/schemas/BoardCell"
+      required: [width, height, cells]
+
+    BoardCell:
+      type: object
+      properties:
+        x:
+          type: integer
+          example: 0
+        y:
+          type: integer
+          example: 0
+        region:
+          type: string
+          description: RegionType
+          enum: [SKY, FOREST, WATERS, VILLAGES, MOUNTAINS]
+        ownerSeat:
+          type: integer
+          example: -1
+        hits:
+          type: integer
+          example: 0
+      required: [x, y, region, ownerSeat, hits]
+
+    PlayerSeatResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        seat:
+          type: integer
+          example: 1
+        bot:
+          type: boolean
+          example: false
+        alive:
+          type: boolean
+          example: true
+        lightning:
+          type: integer
+          example: 2
+        wood:
+          type: integer
+          example: 2
+        stone:
+          type: integer
+          example: 2
+        glass:
+          type: integer
+          example: 2
+        force:
+          type: integer
+          example: 2
+      required: [id, seat, bot, alive, lightning, wood, stone, glass, force]
+
+    ActionRequest:
+      type: object
+      properties:
+        playerId:
+          type: integer
+          description: Seat number (1..N)
+          example: 1
+        x:
+          type: integer
+          example: 1
+        y:
+          type: integer
+          example: 0
+      required: [playerId, x, y]
+
+    EndTurnRequest:
+      type: object
+      properties:
+        playerId:
+          type: integer
+          description: Seat number (1..N)
+          example: 2
+      required: [playerId]
+
+    ActionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: BUILD_SUCCESS
+        traceId:
+          type: string
+          example: 8ce74e6e-4e0b-4a7b-9d4d-0f92e3e8f2c5
+      required: [success, message, traceId]
+
+    CreateTradeRequest:
+      type: object
+      properties:
+        from:
+          type: integer
+          description: offering seat
+          example: 1
+        to:
+          type: integer
+          description: target seat or -1 for public
+          example: -1
+        give:
+          type: string
+          enum: [WOOD, STONE, GLASS, FORCE]
+          example: WOOD
+        get:
+          type: string
+          enum: [WOOD, STONE, GLASS, FORCE]
+          example: STONE
+        ttlMs:
+          type: integer
+          format: int64
+          example: 20000
+      required: [from, to, give, get]
+
+    TradeResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 5
+        matchId:
+          type: integer
+          format: int64
+          example: 1
+        from:
+          type: integer
+          example: 1
+        to:
+          type: integer
+          example: -1
+        give:
+          type: string
+          enum: [WOOD, STONE, GLASS, FORCE]
+        get:
+          type: string
+          enum: [WOOD, STONE, GLASS, FORCE]
+        status:
+          type: string
+          example: OPEN
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        acceptedBySeat:
+          type: integer
+          nullable: true
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    AcceptTradeRequest:
+      type: object
+      properties:
+        toSeat:
+          type: integer
+          example: 2
+      required: [toSeat]
+
+    AcceptTradeResponse:
+      type: object
+      properties:
+        accepted:
+          type: boolean
+          example: true
+      required: [accepted]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: OFFER_EXPIRED
+      required: [error]
