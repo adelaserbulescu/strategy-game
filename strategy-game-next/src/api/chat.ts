@@ -4,7 +4,6 @@ import {
   AIRecommendation,
   ChatMessage,
 } from "../models/Chat";
-import { chatHttp } from "./chatHttp";
 import { API_BASES } from "./backends";
 
 
@@ -13,7 +12,7 @@ import { API_BASES } from "./backends";
 -------------------------------- */
 
 export function getChatHistory(matchId: number) {
-  return chatHttp<ChatHistory>(`/api/chat/matches/${matchId}/history`);
+  return http<ChatHistory>("chat", `/api/chat/matches/${matchId}/history`);
 }
 
 export async function getMessages(matchId: number): Promise<ChatMessage[]> {
@@ -52,7 +51,7 @@ export function askAI(
   question: string,
   gameState: any
 ) {
-  return chatHttp<AIRecommendation>("/api/chat/ai/recommendation", {
+  return http<AIRecommendation>("chat", "/api/chat/ai/recommendation", {
     method: "POST",
     body: JSON.stringify({
       matchId,
