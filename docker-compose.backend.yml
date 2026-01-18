@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: strategygame
+      POSTGRES_USER: strategygame
+      POSTGRES_PASSWORD: strategygame
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U strategygame -d strategygame"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "5432:5432"
+
+  strategy-game:
+    build:
+      context: ./StrategyGameApp
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/strategygame
+      SPRING_DATASOURCE_USERNAME: strategygame
+      SPRING_DATASOURCE_PASSWORD: strategygame
+    ports:
+      - "8081:8080"
+
+  user-management:
+    build:
+      context: ./StrategyGame_UserManagement
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/strategygame
+      SPRING_DATASOURCE_USERNAME: strategygame
+      SPRING_DATASOURCE_PASSWORD: strategygame
+    ports:
+      - "8082:8081"
+
+  chat-system:
+    build:
+      context: ./chat-system
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      strategy-game:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgres://strategygame:strategygame@postgres:5432/strategygame
+      JWT_SECRET: your_jwt_secret
+      GAME_ENGINE_URL: http://strategy-game:8080
+      PORT: 3000
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
