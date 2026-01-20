@@ -28,12 +28,7 @@ public class SecurityConfig {
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // allow registration & login without token
-                        .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                        // admin-only endpoint: get all users
-                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
-                        // everything else requires authentication
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

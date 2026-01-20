@@ -1,7 +1,8 @@
-import { http } from "./http";
+import { gameHttp } from "./gameHttp";
 import { Match } from "../models/Match";
 import { Board } from "../models/Board";
 import { Player } from "../models/Player";
+import {PlaceHouseResponse} from "@/types/ActionsResponse";
 
 export const API_BASE = "/api";
 
@@ -11,46 +12,33 @@ export function createMatch(
   height: number,
   bots: boolean[]
 ) {
-  return http<Match>(`${API_BASE}/matches`, {
+  return gameHttp<Match>(`${API_BASE}/matches`, {
     method: "POST",
     body: JSON.stringify({ players, width, height, bots }),
   });
 }
 
 export function getBoard(matchId: number) {
-  return http<Board>(`${API_BASE}/board/${matchId}`);
+  return gameHttp<Board>(`${API_BASE}/board/${matchId}`);
 }
 
 export function getPlayers(matchId: number) {
-  return http<Player[]>(`${API_BASE}/players/${matchId}`);
+  return gameHttp<Player[]>(`${API_BASE}/players/${matchId}`);
 }
 
 export function getMatch(matchId: number) {
-  return http<Match>(`${API_BASE}/matches/${matchId}`);
+  return gameHttp<Match>(`${API_BASE}/matches/${matchId}`);
 }
 
-export function build(matchId: number, x: number, y: number) {
-  return http<any>(`${API_BASE}/matches/${matchId}/build`, {
+export function placeStartingHouse(matchId: number, playerId: number, x: number, y: number) {
+  return gameHttp<PlaceHouseResponse>(`/api/actions/${matchId}/place`, {
     method: "POST",
-    body: JSON.stringify({ x, y }),
+    body: JSON.stringify({ playerId, x, y }),
   });
 }
 
-export async function buildCell(
-  matchId: number,
-  x: number,
-  y: number,
-  seat: number
-) {
-  return http<any>(`${API_BASE}/matches/${matchId}/build-cell`, {
-    method: "POST",
-    body: JSON.stringify({ x, y, seat }),
-  });
-}
-
-
-export function endTurn(matchId: number) {
-  return http<any>(`${API_BASE}/matches/${matchId}/end-turn`, {
+export function startMatch(matchId: number) {
+  return gameHttp<Match>(`/api/matches/${matchId}/start`, {
     method: "POST",
   });
 }

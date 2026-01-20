@@ -1,4 +1,4 @@
-export type MatchStatus = "PENDING" | "RUNNING" | "FINISHED";
+export type MatchStatus = "PENDING" | "RUNNING";
 
 export interface Match {
   id: number;

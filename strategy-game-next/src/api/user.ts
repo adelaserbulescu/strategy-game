@@ -2,14 +2,6 @@ import { http } from "./http";
 import { User } from "../models/User";
 
 const API_USERS = "/api/users";
-
-/**
- * Get current authenticated user
- */
-export async function getCurrentUser() {
-  return http<User>(`${API_USERS}/me`);
-}
-
 /**
  * Get user by ID
  */

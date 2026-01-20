@@ -32,9 +32,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const user = await authApi.register(username, password, description);
     // After registration, log in automatically
     const res = await authApi.login(username, password);
-    setToken(res.token);
-    setUser(res.user);
-    localStorage.setItem("token", res.token);
+    setToken("token");
+    //setUser(res.user);
+    localStorage.setItem("token", "token");
   };
 
   return (

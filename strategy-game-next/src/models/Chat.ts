@@ -1,21 +1,13 @@
-export type ChatTab = "CHAT" | "AI";
+export type AiRecommendationRequest = {
+  matchId: number;
+  playerSeat: number;
+};
 
-export interface ChatMessage {
-  id: string;
-  senderId: string;
-  senderName: string;
-  content: string;
-  type: "PLAYER" | "AI";
-  tab: ChatTab;
-  timestamp: string;
-}
-
-export interface ChatHistory {
-  matchId: string;
-  messages: ChatMessage[];
-}
-
-export interface AIRecommendation {
-  recommendation: string;
+export type AiRecommendationResponse = {
   suggestedAction: string;
-}
+  recommendation: string;
+  confidence: number;
+  score: number;
+  description: string;
+  payload: any | null;
+};
