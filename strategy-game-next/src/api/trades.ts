@@ -9,7 +9,6 @@ export function createTrade(matchId: number, body: {
   ttlMs: number;
 }) {
   return http<TradeOffer>(
-    "game",
     `/api/trades/${matchId}`, {
     method: "POST",
     body: JSON.stringify(body),
@@ -19,7 +18,6 @@ export function createTrade(matchId: number, body: {
 export function listTrades(matchId: number, status?: string) {
   const q = status ? `?status=${status}` : "";
   return http<TradeOffer[]>(
-    "game",
     `/api/trades/${matchId}/trades${q}`);
 }
 
@@ -29,7 +27,6 @@ export function acceptTrade(
   toSeat: number
 ) {
   return http<{ accepted: boolean }>(
-    "game",
     `/api/trades/${matchId}/${tradeId}/accept`,
     {
       method: "POST",
