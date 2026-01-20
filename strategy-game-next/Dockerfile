@@ -7,8 +7,18 @@ RUN npm ci
 # ---- build ----
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+ARG NEXT_PUBLIC_USER_API
+ARG NEXT_PUBLIC_CHAT_API
+ARG NEXT_PUBLIC_CHAT_URL
+
+ENV NEXT_PUBLIC_USER_API=$NEXT_PUBLIC_USER_API
+ENV NEXT_PUBLIC_CHAT_API=$NEXT_PUBLIC_CHAT_API
+ENV NEXT_PUBLIC_CHAT_URL=$NEXT_PUBLIC_CHAT_URL
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
 RUN npm run build
 
 # ---- run ----

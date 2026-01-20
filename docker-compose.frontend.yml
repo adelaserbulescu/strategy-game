@@ -1,0 +1,11 @@
+services:
+  frontend:
+    build:
+      context: ./strategy-game-next
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_USER_API: "http://192.168.1.16:8082"
+        NEXT_PUBLIC_GAME_API: "http://192.168.1.16:8081"
+        NEXT_PUBLIC_CHAT_API: "http://192.168.1.16:3000"
+    ports:
+      - "3002:3000"

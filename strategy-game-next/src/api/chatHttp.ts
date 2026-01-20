@@ -1,4 +1,4 @@
-const CHAT_BASE = process.env.NEXT_PUBLIC_CHAT_URL ?? "http://localhost:3000";
+const CHAT_BASE = process.env.NEXT_PUBLIC_CHAT_API ?? "http://localhost:3000";
 
 function getTokenSafe(): string | null {
   if (typeof window === "undefined") return null;

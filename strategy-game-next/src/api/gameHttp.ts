@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8081";
+const API_BASE = process.env.NEXT_PUBLIC_GAME_API ?? "http://localhost:8081";
 
 function getTokenSafe(): string | null {
     // Avoid SSR / "window is not defined" crashes

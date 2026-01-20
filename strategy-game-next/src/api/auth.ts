@@ -2,17 +2,18 @@ import { http } from "./http";
 import { User } from "../models/User";
 
 export function login(username: string, password: string) {
-  return http<{ token: string; user: User }>("user", "/api/users/login", {
-    method: "POST",
-    body: JSON.stringify({ username, password }),
-  });
+  return http<{ token: string; user: User
+  }>("/api/users/login",
+      { method: "POST",
+        body: JSON.stringify({ username, password }),
+      });
 }
 
 export function register(username: string, password: string, description?: string) {
-  return http<User>("user", "/api/users/register", {
-    method: "POST",
-    body: JSON.stringify({ username, password, description }),
-  });
+  return http<User>("/api/users/register",
+      { method: "POST",
+        body: JSON.stringify({ username, password, description }),
+      });
 }
 
 export async function updateUser(id: number, data: {
