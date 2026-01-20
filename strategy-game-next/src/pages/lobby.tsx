@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
-import { createMatch } from "../api/game";
+import { createMatch, startMatch } from "../api/game";
 import { Match } from "../models/Match";
 
 export default function LobbyPage() {
@@ -22,14 +22,27 @@ export default function LobbyPage() {
   }, []);
 
   const handleCreateMatch = async () => {
+  try {
+    const newMatch = await createMatch(4, 5, 3, [false, false, false, false]);
+
+    // DO NOT redirect yet
+    setMatches(prev => [...prev, newMatch]);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to create match");
+  }
+  };
+
+  const handleStartMatch = async (matchId: number) => {
     try {
-      const newMatch = await createMatch(4, 5, 3, [false, false, false, false]);
-      router.push(`/game/${newMatch.id}`);
-    } catch (err: any) {
-      console.error("Failed to create match:", err.message || err);
-      alert("Failed to create match");
+      await startMatch(matchId);
+      router.push(`/game/${matchId}`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to start match");
     }
   };
+
 
   const handleJoinMatch = (matchId: number) => {
     router.push(`/game/${matchId}`);
@@ -43,6 +56,15 @@ export default function LobbyPage() {
 </button></h2>
 
       <button onClick={handleCreateMatch}>Create New Match</button>
+      {matches.map(m => (
+  <li key={m.id}>
+    Match #{m.id}
+    <button onClick={() => handleStartMatch(m.id)}>
+      Start
+    </button>
+  </li>
+))}
+
       <h3>Available Matches</h3>
       {matches.length === 0 && <p>No matches yet.</p>}
       <ul>

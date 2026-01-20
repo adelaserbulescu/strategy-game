@@ -1,20 +1,12 @@
 import { http } from "./http";
 import { User } from "../models/User";
 
-const API_USERS = "/api/users";
-
-/**
- * Get current authenticated user
- */
-export async function getCurrentUser() {
-  return http<User>("user", `${API_USERS}/me`);
-}
 
 /**
  * Get user by ID
  */
 export async function getUserById(userId: number) {
-  return http<User>("user", `${API_USERS}/${userId}`);
+  return http<User>("user", `/api/users/${userId}`);
 }
 
 /**
@@ -24,7 +16,7 @@ export async function updateUser(
   userId: number,
   data: Partial<Pick<User, "username" | "description">>
 ) {
-  return http<User>("user", `${API_USERS}/${userId}`, {
+  return http<User>("user", `/api/users/${userId}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });
@@ -35,7 +27,7 @@ export async function updateUser(
  * (called by Game Engine after match finishes)
  */
 export async function incrementWins(userId: number) {
-  return http<User>("user", `${API_USERS}/${userId}/wins/increment`, {
+  return http<User>("user", `/api/users/${userId}/wins/increment`, {
     method: "POST",
   });
 }
@@ -44,5 +36,5 @@ export async function incrementWins(userId: number) {
  * Admin-only: List all users
  */
 export async function listUsers() {
-  return http<User[]>(`user`, `${API_USERS}`);
+  return http<User[]>(`user`, `/api/users`);
 }
